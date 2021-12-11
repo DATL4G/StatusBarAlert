@@ -199,12 +199,23 @@ class StatusBarAlert @JvmOverloads internal constructor(
 	 * @see StatusBarAlert
 	 */
 	@JvmOverloads
-	fun hide(onHidden: (() -> Unit)? = null): StatusBarAlert {
+	fun hide(animate: Boolean = true, onHidden: (() -> Unit)? = null): StatusBarAlert {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 			activity.window?.statusBarColor = statusBarColorOriginal
 		}
-		
-		slideUp {
+
+		if (animate) {
+			slideUp {
+				decorView?.post {
+					decorView?.systemUiVisibility = decorView?.systemUiVisibility
+						?.and(View.SYSTEM_UI_FLAG_LOW_PROFILE.inv())
+						?: View.SYSTEM_UI_FLAG_LOW_PROFILE.inv()
+					(decorView as? ViewGroup?)?.removeView(this)
+				}
+				currentInstance.clear()
+				onHidden?.invoke()
+			}
+		} else {
 			decorView?.post {
 				decorView?.systemUiVisibility = decorView?.systemUiVisibility
 					?.and(View.SYSTEM_UI_FLAG_LOW_PROFILE.inv())
